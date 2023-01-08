@@ -10,14 +10,14 @@ import (
 
 type LogSession struct {
 	sync.Mutex
-	ID            string
-	ServiceID     string
-	MaxSeverity   byte
-	MaxType       byte
-	Anonymized    bool
-	timeCreated   time.Time
-	rx            chan logEvent // receiver for log events
-	mapMetricTime map[uint64]timeMetric
+	ID             string
+	ServiceID      string
+	MaxSeverity    byte
+	MaxType        byte
+	Anonymized     bool
+	timeCreated    time.Time
+	rx             chan logEvent // receiver for log events
+	metricDuration mapMetricDuration
 }
 
 func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymous bool) *LogSession {
@@ -30,7 +30,7 @@ func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymous b
 	ls.Anonymized = anonymous
 	// init
 	initConstants()
-	ls.mapMetricTime = make(map[uint64]timeMetric)
+	ls.metricDuration.init()
 	// init receiver channell
 	ls.rx = make(chan logEvent, 100)
 	go ls.receiver()
@@ -64,21 +64,7 @@ func (ls *LogSession) receiver() {
 			// SLO framework , create other events in case under SLO (critical, etc)
 			// define ways to collect average
 			if le.subType == SUBTYPE_METRIC_DURATION {
-				ls.Lock()
-				hash := le.getHash()
-				timeMetric, ok := ls.mapMetricTime[hash]
-				if ok {
-					timeMetric.end(&le)
-					// calculate duration in milliseconds (float64)
-					le.value = float64(timeMetric.measurement) / float64(time.Millisecond)
-					le.unit = UNIT_MILLISECONDS
-					tailMessage = ", END"
-				} else {
-					NewTimeMetric(&le)
-					ls.mapMetricTime[hash] = *NewTimeMetric(&le)
-					tailMessage = ", START"
-				}
-				ls.Unlock()
+				tailMessage = ls.metricDuration.set(&le)
 			}
 		}
 		// write log entries

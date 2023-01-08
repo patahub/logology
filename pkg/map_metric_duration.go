@@ -10,9 +10,13 @@ type mapMetricDuration struct {
 	mapMetricTime map[uint64]timeMetric
 }
 
+func (m *mapMetricDuration) init() {
+	m.mapMetricTime = make(map[uint64]timeMetric)
+}
+
 // manages the mutex and mapMetricDuraction
 // returns a tail for the log message (START, END)
-func (m *mapMetricDuration) Set(key uint64, le *logEvent) string {
+func (m *mapMetricDuration) set(le *logEvent) string {
 	m.Lock()
 	defer m.Unlock()
 	hash := le.getHash()
