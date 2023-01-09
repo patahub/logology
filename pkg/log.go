@@ -8,6 +8,7 @@ func (ls *LogSession) Log(transactionID string, tenantID string, scopeID string,
 		tenantID:      tenantID,
 		scopeID:       scopeID,
 		message:       message,
+		fact:          "", // not applicable here
 	}
 	ls.log(le)
 }
@@ -20,6 +21,7 @@ func (ls *LogSession) LogWarning(transactionID string, tenantID string, scopeID 
 		tenantID:      tenantID,
 		scopeID:       scopeID,
 		message:       message,
+		fact:          "", // not applicable here
 	}
 	ls.log(le)
 }
@@ -32,6 +34,7 @@ func (ls *LogSession) LogError(transactionID string, tenantID string, scopeID st
 		tenantID:      tenantID,
 		scopeID:       scopeID,
 		message:       message,
+		fact:          "", // not applicable here
 	}
 	ls.log(le)
 }
@@ -44,6 +47,7 @@ func (ls *LogSession) LogCritical(transactionID string, tenantID string, scopeID
 		tenantID:      tenantID,
 		scopeID:       scopeID,
 		message:       message,
+		fact:          "", // not applicable here
 	}
 	ls.log(le)
 }

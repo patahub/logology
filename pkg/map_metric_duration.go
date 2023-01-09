@@ -16,7 +16,7 @@ func (m *mapMetricDuration) init() {
 
 // manages the mutex and mapMetricDuraction
 // returns a tail for the log message (START, END)
-func (m *mapMetricDuration) set(le *logEvent) string {
+func (m *mapMetricDuration) set(le *logEvent) {
 	m.Lock()
 	defer m.Unlock()
 	hash := le.getHash()
@@ -26,10 +26,13 @@ func (m *mapMetricDuration) set(le *logEvent) string {
 		// calculate duration in milliseconds (float64)
 		le.value = float64(timeMetric.measurement) / float64(time.Millisecond)
 		le.unit = UNIT_MILLISECONDS
-		return ", END"
+		// free map entry
+		delete(m.mapMetricTime, hash)
+		le.fact = "START"
+		return
 	}
 	// new metric
 	NewTimeMetric(le)
 	m.mapMetricTime[hash] = *NewTimeMetric(le)
-	return ", START"
+	le.fact = "BEGIN"
 }

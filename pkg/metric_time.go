@@ -30,7 +30,22 @@ func (tm *timeMetric) end(le *logEvent) {
 	tm.measurement = time.Now().UTC().Sub(tm.startTime)
 }
 
-func (ls *LogSession) LogMetricDuration(transactionID string, tenantID string, scopeID string, message string) {
+func (ls *LogSession) LogMetricDurationStart(transactionID string, tenantID string, scopeID string) {
+	var le = logEvent{
+		logtype:       TYPE_METRIC,
+		subType:       SUBTYPE_METRIC_DURATION,
+		severity:      SEVERITY_INFO,
+		serviceID:     ls.ServiceID,
+		transactionID: transactionID,
+		tenantID:      tenantID,
+		scopeID:       scopeID,
+		message:       "",
+		metricKey:     "",
+	}
+	ls.log(le)
+}
+
+func (ls *LogSession) LogMetricDurationEnd(transactionID string, tenantID string, scopeID string, message string, metricKey string) {
 	var le = logEvent{
 		logtype:       TYPE_METRIC,
 		subType:       SUBTYPE_METRIC_DURATION,
@@ -40,6 +55,7 @@ func (ls *LogSession) LogMetricDuration(transactionID string, tenantID string, s
 		tenantID:      tenantID,
 		scopeID:       scopeID,
 		message:       message,
+		metricKey:     metricKey,
 	}
 	ls.log(le)
 }

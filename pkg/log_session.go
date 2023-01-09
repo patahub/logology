@@ -15,19 +15,22 @@ type LogSession struct {
 	MaxSeverity    byte
 	MaxType        byte
 	Anonymized     bool
+	FilePath       string // non mandatory
+	ConsoleOutput  bool
 	timeCreated    time.Time
 	rx             chan logEvent // receiver for log events
 	metricDuration mapMetricDuration
 }
 
-func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymous bool) *LogSession {
+func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymize bool, consoleOutput bool) *LogSession {
 	ls := new(LogSession)
 	ls.ID = uuid.New().String()[:8] // just the first part of UUID is sufficient for uniqueness and avoid hyphens
 	ls.ServiceID = serviceID
 	ls.timeCreated = time.Now().UTC()
 	ls.MaxSeverity = maxSeverity
 	ls.MaxType = maxType
-	ls.Anonymized = anonymous
+	ls.Anonymized = anonymize
+	ls.ConsoleOutput = consoleOutput
 	// init
 	initConstants()
 	ls.metricDuration.init()
@@ -35,6 +38,10 @@ func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymous b
 	ls.rx = make(chan logEvent, 100)
 	go ls.receiver()
 	return ls
+}
+
+func (ls *LogSession) SetTimeStampFormat(format string) {
+	timestamp_format = format
 }
 
 // generic log function for all log events
@@ -52,22 +59,23 @@ func (ls *LogSession) log(le logEvent) {
 
 // receiver for all log events
 func (ls *LogSession) receiver() {
-	tailMessage := ""
 	for {
 		le := <-ls.rx
+		// anonymize log event if applicable
+		if ls.Anonymized {
+			le.anonymize()
+		}
 		switch le.logtype {
 		case TYPE_METRIC:
-			// TODO: various things todo
-			// make sure locking is correct all allong
-			// delete entry from map once timing is complete/ended
-			// write log entries
-			// SLO framework , create other events in case under SLO (critical, etc)
-			// define ways to collect average
 			if le.subType == SUBTYPE_METRIC_DURATION {
-				tailMessage = ls.metricDuration.set(&le)
+				// this handles both duration start and end events
+				ls.metricDuration.set(&le)
+				break
 			}
 		}
 		// write log entries
-		fmt.Printf("%s, %s%s\n", le.HeaderString(), le.MessageString(), tailMessage)
+		if ls.ConsoleOutput {
+			fmt.Printf("%s, %s\n", le.headerString(), le.messageString())
+		}
 	}
 }
