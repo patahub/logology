@@ -1,17 +1,18 @@
 package log
 
-var timestamp_format = "2006-01-02 15:04:05.000000"
-
+// Defines if logging should be bound to the console output or not.
 const (
 	CONSOLE_ON  = true
 	CONSOLE_OFF = false
 )
 
+// Defines if anonymization is enabled
 const (
 	ANONYMOUS_TRUE  = true
 	ANONYMOUS_FALSE = false
 )
 
+// Log types
 const (
 	TYPE_COMPLIANCE byte = iota
 	TYPE_LOG
@@ -22,6 +23,7 @@ const (
 	TYPE_ALL
 )
 
+// Log sub-types
 const (
 	SUBTYPE_METRIC_DURATION  = "DURATION"
 	SUBTYPE_METRIC_TIMESTAMP = "TIMESTAMP"
@@ -29,6 +31,7 @@ const (
 	SUBTYPE_METRIC_VALUE     = "VALUE"
 )
 
+// Severity levels
 const (
 	SEVERITY_CRITICAL byte = iota
 	SEVERITY_ERROR
@@ -38,6 +41,7 @@ const (
 	SEVERITY_ALL
 )
 
+// Time units
 const (
 	UNIT_NANOSECONDS  = "ns"
 	UNIT_MICROSECONDS = "us"
@@ -49,15 +53,12 @@ const (
 	UNIT_YEARS        = "y"
 )
 
+// transaction rate constants
 const (
 	unit_transaction_rate_tps = "TPS"
 	unit_transaction_rate_tpm = "TPM"
 )
 
-var types [7]string
-var severities [6]string
-
-func initConstants() {
-	types = [7]string{"COMPLIANCE", "LOG", "METRIC", "T-RATE", "DEBUG", "TRACE", "ALL"}
-	severities = [6]string{"CRITICAL", "ERROR", "WARNING", "INFO", "NORMAL", "ALL"}
-}
+// global types and severity for readability of messages
+var types = [7]string{"COMPLIANCE", "LOG", "METRIC", "T-RATE", "DEBUG", "TRACE", "ALL"}
+var severities = [6]string{"CRITICAL", "ERROR", "WARNING", "INFO", "NORMAL", "ALL"}

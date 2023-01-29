@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+// structure that hols the duration data the duration is associated with a unique hash that identifies the flow details,
+// such as the combination of a tenant, transaction, service and scope
 type mapMetricDuration struct {
 	sync.Mutex
 	mapMetricTime map[uint64]timeMetric

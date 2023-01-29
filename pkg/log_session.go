@@ -8,53 +8,61 @@ import (
 	"github.com/google/uuid"
 )
 
+// LogSession contains all specifications for the log session. Each program should have only one LogSession.
+// Initialize it through the NewLogSession function.
 type LogSession struct {
 	sync.Mutex
-	ID                    string
-	ServiceID             string
-	MaxSeverity           byte
-	MaxType               byte
-	Anonymized            bool
-	FilePath              string // non mandatory
-	ConsoleOutput         bool
+	id                    string
+	serviceID             string
+	maxSeverity           byte
+	maxType               byte
+	anonymized            bool
+	filePath              string // non mandatory
+	consoleOutput         bool
 	timeCreated           time.Time
+	timeStampFormat       string
 	rx                    chan logEvent // receiver for log events
 	metricDuration        mapMetricDuration
 	transactionRateEngine *transactionRateEngine
 }
 
+// Initializes a new LogSession. Notice that the log time stamp format defaults to
+// "2006-01-02 15:04:05.000000" and it can be overridden by calling SetTimeStampFormat(string)
 func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymize bool, consoleOutput bool) *LogSession {
 	ls := new(LogSession)
-	ls.ID = uuid.New().String()[:8] // just the first part of UUID is sufficient for uniqueness and avoid hyphens
-	ls.ServiceID = serviceID
+	ls.id = uuid.New().String()[:8] // just the first part of UUID is sufficient for uniqueness and avoid hyphens
+	ls.serviceID = serviceID
 	ls.timeCreated = time.Now().UTC()
-	ls.MaxSeverity = maxSeverity
-	ls.MaxType = maxType
-	ls.Anonymized = anonymize
-	ls.ConsoleOutput = consoleOutput
+	ls.maxSeverity = maxSeverity
+	ls.maxType = maxType
+	ls.anonymized = anonymize
+	ls.consoleOutput = consoleOutput
+	ls.timeStampFormat = "2006-01-02 15:04:05.000000"
 	// init
-	initConstants()
 	ls.metricDuration.init()
 	// init receiver channell
 	ls.rx = make(chan logEvent, 100)
 	go ls.receiver()
 	// init KPI / transaction rate
-	ls.transactionRateEngine = NewTransactionRate(ls)
+	ls.transactionRateEngine = newTransactionRate(ls)
 	return ls
 }
 
+// Overrides the default timestamp format which is "2006-01-02 15:04:05.000000"
 func (ls *LogSession) SetTimeStampFormat(format string) {
-	timestamp_format = format
+	ls.Lock()
+	defer ls.Unlock()
+	ls.timeStampFormat = format
 }
 
 // generic log function for all log events
 // allows filtering logic and other initial decicions before sending event to receiver
 func (ls *LogSession) log(le logEvent) {
 	// ensure only the
-	if le.logtype > ls.MaxType {
+	if le.logtype > ls.maxType {
 		return
 	}
-	if le.severity > ls.MaxSeverity {
+	if le.severity > ls.maxSeverity {
 		return
 	}
 	ls.rx <- le
@@ -65,7 +73,7 @@ func (ls *LogSession) receiver() {
 	for {
 		le := <-ls.rx
 		// anonymize log event if applicable
-		if ls.Anonymized {
+		if ls.anonymized {
 			le.anonymize()
 		}
 		switch le.logtype {
@@ -77,8 +85,8 @@ func (ls *LogSession) receiver() {
 			}
 		}
 		// write log entries
-		if ls.ConsoleOutput {
-			fmt.Printf("%s, %s\n", le.headerString(), le.messageString())
+		if ls.consoleOutput {
+			fmt.Printf("%s, %s\n", le.headerString(ls.timeStampFormat), le.messageString())
 		}
 	}
 }

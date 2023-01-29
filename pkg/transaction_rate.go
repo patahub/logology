@@ -14,7 +14,8 @@ type transactionRateEngine struct {
 	tickerTPM     time.Ticker
 }
 
-func NewTransactionRate(logSession *LogSession) *transactionRateEngine {
+// initializes the transaction rate
+func newTransactionRate(logSession *LogSession) *transactionRateEngine {
 	var tre = &transactionRateEngine{}
 	tre.init(logSession)
 	return tre
@@ -32,13 +33,14 @@ func (tre *transactionRateEngine) init(logSession *LogSession) {
 	go tre.tickListener()
 }
 
+// tickers for transaction rate per second and per minute
 func (tre *transactionRateEngine) tickListener() {
 	for {
 		select {
 		case <-tre.tickerTPS.C:
 			tre.Lock()
 			for k, v := range tre.mapCounterTPS {
-				tre.logSession.LogTransactionRate(k, float64(v), unit_transaction_rate_tps)
+				tre.logSession.logTransactionRate(k, float64(v), unit_transaction_rate_tps)
 			}
 			// reset counters
 			tre.mapCounterTPS = make(map[string]uint32)
@@ -46,7 +48,7 @@ func (tre *transactionRateEngine) tickListener() {
 		case <-tre.tickerTPM.C:
 			tre.Lock()
 			for k, v := range tre.mapCounterTPM {
-				tre.logSession.LogTransactionRate(k, float64(v), unit_transaction_rate_tpm)
+				tre.logSession.logTransactionRate(k, float64(v), unit_transaction_rate_tpm)
 			}
 			// reset counters
 			tre.mapCounterTPM = make(map[string]uint32)
@@ -55,7 +57,8 @@ func (tre *transactionRateEngine) tickListener() {
 	}
 }
 
-func (ls *LogSession) TPSadd(kpi string) uint32 {
+// Increments the transaction per second counter by 1 for the specified KPI
+func (ls *LogSession) TPS_add(kpi string) uint32 {
 	ls.transactionRateEngine.Lock()
 	defer ls.transactionRateEngine.Unlock()
 	if val, ok := ls.transactionRateEngine.mapCounterTPS[kpi]; ok {
@@ -67,7 +70,8 @@ func (ls *LogSession) TPSadd(kpi string) uint32 {
 	return 1
 }
 
-func (ls *LogSession) TPMadd(kpi string) uint32 {
+// Increments the transaction per minute counter by 1 for the specified KPI
+func (ls *LogSession) TPM_add(kpi string) uint32 {
 	ls.transactionRateEngine.Lock()
 	defer ls.transactionRateEngine.Unlock()
 	if val, ok := ls.transactionRateEngine.mapCounterTPM[kpi]; ok {
@@ -79,7 +83,8 @@ func (ls *LogSession) TPMadd(kpi string) uint32 {
 	return 1
 }
 
-func (ls *LogSession) LogTransactionRate(kpi string, value float64, unit string) {
+// called when the respective tickers are ticked
+func (ls *LogSession) logTransactionRate(kpi string, value float64, unit string) {
 	var le = logEvent{
 		logtype:       TYPE_TRANS_RATE,
 		severity:      SEVERITY_INFO,

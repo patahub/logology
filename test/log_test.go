@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -38,19 +37,8 @@ func TestKPI(t *testing.T) {
 	var ls = log.NewLogSession("myservice", log.SEVERITY_INFO, log.TYPE_ALL, log.ANONYMOUS_TRUE, log.CONSOLE_ON)
 	ls.SetTimeStampFormat("2006-01-02 15:04:05")
 	// delay for channel consuming events
-	time.Sleep(2 * time.Second)
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT PERA", ls.TPMadd("PERA"))
-	fmt.Println("COUNT PERA", ls.TPMadd("PERA"))
-	time.Sleep(5 * time.Second)
-	fmt.Println("COUNT PERA", ls.TPMadd("PERA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT BANANA", ls.TPSadd("BANANA"))
-	fmt.Println("COUNT PERA", ls.TPMadd("PERA"))
-	time.Sleep(61 * time.Second)
+	for i := 0; i < 30; i++ {
+		ls.TPS_add("BANANA")
+		time.Sleep(100 * time.Millisecond)
+	}
 }
