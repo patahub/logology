@@ -16,7 +16,7 @@ const (
 	TYPE_COMPLIANCE byte = iota
 	TYPE_LOG
 	TYPE_METRIC
-	TYPE_SLO
+	TYPE_TRANS_RATE
 	TYPE_DEBUG
 	TYPE_TRACE
 	TYPE_ALL
@@ -49,10 +49,15 @@ const (
 	UNIT_YEARS        = "y"
 )
 
+const (
+	unit_transaction_rate_tps = "TPS"
+	unit_transaction_rate_tpm = "TPM"
+)
+
 var types [7]string
 var severities [6]string
 
 func initConstants() {
-	types = [7]string{"COMPLIANCE", "LOG", "METRIC", "SLO", "DEBUG", "TRACE", "ALL"}
+	types = [7]string{"COMPLIANCE", "LOG", "METRIC", "T-RATE", "DEBUG", "TRACE", "ALL"}
 	severities = [6]string{"CRITICAL", "ERROR", "WARNING", "INFO", "NORMAL", "ALL"}
 }

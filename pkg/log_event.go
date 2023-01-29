@@ -42,11 +42,13 @@ func (le *logEvent) headerString() string {
 }
 
 func (le *logEvent) messageString() string {
-	if le.logtype != TYPE_METRIC {
-		return fmt.Sprintf("%q", le.message)
+	if le.logtype == TYPE_METRIC {
+		return fmt.Sprintf("%q, %q, %f, %q, %q", le.message, le.metricKey, le.value, le.unit, le.fact)
 	}
-	// METRIC
-	return fmt.Sprintf("%q, %q, %f, %q, %q", le.message, le.metricKey, le.value, le.unit, le.fact)
+	if le.logtype == TYPE_TRANS_RATE {
+		return fmt.Sprintf("%q, %q, %f, %q", le.message, le.metricKey, le.value, le.unit)
+	}
+	return fmt.Sprintf("%q", le.message)
 }
 
 func (le *logEvent) getHash() uint64 {

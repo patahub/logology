@@ -10,16 +10,17 @@ import (
 
 type LogSession struct {
 	sync.Mutex
-	ID             string
-	ServiceID      string
-	MaxSeverity    byte
-	MaxType        byte
-	Anonymized     bool
-	FilePath       string // non mandatory
-	ConsoleOutput  bool
-	timeCreated    time.Time
-	rx             chan logEvent // receiver for log events
-	metricDuration mapMetricDuration
+	ID                    string
+	ServiceID             string
+	MaxSeverity           byte
+	MaxType               byte
+	Anonymized            bool
+	FilePath              string // non mandatory
+	ConsoleOutput         bool
+	timeCreated           time.Time
+	rx                    chan logEvent // receiver for log events
+	metricDuration        mapMetricDuration
+	transactionRateEngine *transactionRateEngine
 }
 
 func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymize bool, consoleOutput bool) *LogSession {
@@ -37,6 +38,8 @@ func NewLogSession(serviceID string, maxSeverity byte, maxType byte, anonymize b
 	// init receiver channell
 	ls.rx = make(chan logEvent, 100)
 	go ls.receiver()
+	// init KPI / transaction rate
+	ls.transactionRateEngine = NewTransactionRate(ls)
 	return ls
 }
 
